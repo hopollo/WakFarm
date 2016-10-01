@@ -8,20 +8,19 @@
 #include <FileConstants.au3>
 #include <MsgBoxConstants.au3>
 #include <WinAPIFiles.au3>
-#RequireAdmin
 
-Global Const $colorRecolte = 0x00837F,
-			 $colorPopout = 0xFF9700,
-			 $colorCombat = 0x4AA197
+Global Const $colorRecolte = 0x00837F
+Global Const $colorPopout = 0xFF9700
+Global Const $colorCombat = 0x4AA197
 
 Global $XSablier, $YSablier, $XMain, $YMain, $XClose, $YClose, $XMonstre, $YMonstre , $recolterMain, $recolterSablier = 0
 Global $DetectionImage, $DetectionPixel, $Combat , $Wait, $Popout, $Attacking, $CollectingMain, $CollectingSablier, $Moving = False
 
 Global $reason = "Thanks for using this program, see you next time."
 
-Global $launcher = "[TITLE:Updater Wakfu; CLASS:QWidget]",
-	   $title = "[TITLE:WAKFU; CLASS:SunAwtFrame]",
-	   $id = "[CLASS:SunAwtCanvas; INSTANCE:2]"
+Global $launcher = "[TITLE:Updater Wakfu; CLASS:QWidget]"
+Global $title = "[TITLE:WAKFU; CLASS:SunAwtFrame]"
+Global $id = "[CLASS:SunAwtCanvas; INSTANCE:2]"
 
 Global Const $target = "target.png"
 Global Const $harvest = "harvest.png"
@@ -34,7 +33,7 @@ Global $colorPixelMob[3] = ["0x595510", "0xFFF1B2", "0x777208"]
 Global $tolerancePixel = 2
 
 
-HotKeySet ("{ESC}","Exit")
+HotKeySet ("{ESC}","ExitScript")
 
 Start()
 
@@ -54,7 +53,7 @@ Func Start()
 	  $to = $to + 1
 	  If $to > 50 Then
 		 $reason = "TimeOut : Wakfu.exe (Not dectected)"
-		 Exit()
+		 ExitScript()
 	  EndIf
    EndIf
    Until $ok
@@ -180,7 +179,7 @@ While 1
 WEnd
 EndFunc
 
-Func Exit()
+Func ExitScript()
    MsgBox(0,"Closing", $reason, 10)
    ConsoleWrite("Program closed...")
    Exit
