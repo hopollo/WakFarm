@@ -26,16 +26,35 @@ Global Const $target = "target.png"
 Global Const $harvest = "harvest.png"
 Global Const $cut = "cut.png"
 Global Const $close = "close.png"
+Global Const $dll1 = "ImageSearchDLL.dll"
+Global Const $dll2 = "ImageSearchDLLx32.dll"
+Global Const $dll3 = "ImageSearchDLLx64.dll"
 
 Global $CouperOnly = False
 Global $DetectionParPixel = True
-Global $colorPixelMob[3] = ["0x595510", "0xFFF1B2", "0x777208"]
+Global $colorPixelMob[3] = [0x595510, 0xFFF1B2, 0x777208]
 Global $tolerancePixel = 2
-
 
 HotKeySet ("{ESC}","ExitScript")
 
-Start()
+Requirements()
+
+Func Requirements()
+   $file1 = FileExists($target)
+   $file2 = FileExists($harvest)
+   $file3 = FileExists($cut)
+   $file4 = FileExists($close)
+   $file5 = FileExists($dll1)
+   $file6 = FileExists($dll2)
+   $file7 = FileExists($dll3)
+
+   If $file1 And $file2 And $file3 And $file4 And $file5 And $file6 And $file7 = True Then
+	  Start()
+   Else
+	  $reason = "Some important required files are missing, please check if they are in the same folder as this program."
+	  ExitScript()
+   EndIf
+EndFunc
 
 Func Start()
    Local $ok = False
