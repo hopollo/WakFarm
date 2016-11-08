@@ -2,7 +2,7 @@
 ;~ Welcome to this OpenSource project written in AutoIt.
 ;~
 ;~ Disclaimer : This program is not about cheating or abusing the game,
-;~ 				but it's a fun way to laern how to code intelligent macros.
+;~ 		but it's a fun way to learn how to code intelligent macros.
 
 #include <ImageSearch.au3>
 #include <FileConstants.au3>
@@ -123,7 +123,7 @@ While 1
 			   $CollectingSablier = False
 			Else
 			   $CollectingSablier = True
-			EndIf
+		 EndIf
 
 		 ElseIf $recolterMain = 1 Then
 			$CollectingMain = True
@@ -142,13 +142,13 @@ While 1
 			$Popout = True
 
 		 ElseIf IsArray($piste1) Then
-				  If IsArray($piste2) Then
-					 If IsArray($monstrePixel) Then
-						If $DetectionParPixel = True Then
-							  $DetectionPixel = True
-						EndIf
-					 EndIf
-				  EndIf
+		  	If IsArray($piste2) Then
+			 	If IsArray($monstrePixel) Then
+					If $DetectionParPixel = True Then
+					  	$DetectionPixel = True
+					EndIf
+			 	EndIf
+		 	 EndIf
 		 EndIf
 	  #EndRegion
 
