@@ -13,7 +13,6 @@ Global Const $colorRecolte = 0x00837F
 Global Const $colorPopout = 0xFF9700
 Global Const $colorCombat = 0x4AA197
 
-Global $XSablier, $YSablier, $XMain, $YMain, $XClose, $YClose, $XMonstre, $YMonstre , $recolterMain, $recolterSablier = 0
 Global $DetectionImage, $DetectionPixel, $Combat , $Wait, $Popout, $Attacking, $CollectingMain, $CollectingSablier, $Moving = False
 
 Global $reason = "Thanks for using this program, see you next time."
@@ -26,7 +25,6 @@ Global $target = "target.png"
 Global $harvest = "harvest.png"
 Global $cut = "cut.png"
 Global $close = "close.png"
-GLobal $au3 = "ImageSearch.au3"
 Global $dll1 = "ImageSearchDLL.dll"
 Global $dll2 = "ImageSearchDLLx32.dll"
 Global $dll3 = "ImageSearchDLLx64.dll"
@@ -48,9 +46,8 @@ Func Requirements()
    $file5 = FileExists($dll1)
    $file6 = FileExists($dll2)
    $file7 = FileExists($dll3)
-   $file8 = FileExists($au3)
 
-   If $file1 And $file2 And $file3 And $file4 And $file5 And $file6 And $file7 And $file8 = True Then
+   If $file1 And $file2 And $file3 And $file4 And $file5 And $file6 And $file7 = True Then
 	  Start()
    Else
 	  $reason = "Some important required files are missing, please check if they are in the same folder as this program."
@@ -105,10 +102,10 @@ While 1
    Sleep(6000)
 
 	  #Region Images Searchs
-	  $monstreImage = _ImageSearch($target, 1, $XMonstre, $YMonstre, 30)
-	  $recolterSablier = _ImageSearch($harvest, 1, $XSablier, $YSablier, 100)
-	  $recolterMain = _ImageSearch($cut, 1, $XMain, $YMain, 100)
-	  $Close = _ImageSearch($close, 1, $XClose, $YClose, 100)
+	  Global $monstreImage = _ImageSearch($target)
+	  Global $recolterSablier = _ImageSearch($harvest)
+	  Global $recolterMain = _ImageSearch($cut)
+	  Global $Close = _ImageSearch($close)
 	  #EndRegion
 
 	  #Region Pixels Searchs
@@ -120,25 +117,25 @@ While 1
 	  #EndRegion
 
 	  #Region Actions
-		 If $recolterSablier = 1 Then
+		 If IsArray($recolterSablier) Then
 			If $CouperOnly = True Then
 			   $CollectingSablier = False
 			Else
 			   $CollectingSablier = True
 		 EndIf
 
-		 ElseIf $recolterMain = 1 Then
+		 ElseIf IsArray($recolterMain) Then
 			$CollectingMain = True
 
 		 ElseIf IsArray($recolte) Then
 			$Wait = True
 
-		 ElseIf $monstreImage = 1 Then
+		 ElseIf IsArray($monstreImage) Then
 			$DetectionImage = True
 
-		 ElseIf $Close = 1 Then
+		 ElseIf IsArray($Close) Then
 			   Sleep(1000)
-				  ControlClick($hWnd,"",$id, "left", 1, $XClose, $YClose)
+				  ControlClick($hWnd,"",$id, "left", 1, $Close[0], $Close[1])
 
 		 ElseIf IsArray($pop) Then
 			$Popout = True
@@ -179,21 +176,21 @@ While 1
    While $DetectionImage
 	  ConsoleWrite("MOB found ! (Image)" & @CRLF)
 	  Sleep(100)
-	  ControlClick($hWnd,"",$id, "right", 1, $XMonstre, $YMonstre)
+	  ControlClick($hWnd,"",$id, "right", 1, $monstreImage[0], $monstreImage[1])
 	  $DetectionImage = False
    WEnd
 
    While $CollectingMain
 	  ConsoleWrite("Harvesting -> Hand " & @CRLF)
 	  Sleep(500)
-	  ControlClick($hWnd,"",$id, "left", 1, $XMain, $YMain)
+	  ControlClick($hWnd,"",$id, "left", 1, $recolterMain[0], $recolterMain[1])
 		 $CollectingMain = False
    WEnd
 
    While $CollectingSablier
 	  ConsoleWrite("Harvesting -> Sablier " & @CRLF)
 	  Sleep(500)
-	  ControlClick($hWnd,"",$id, "left", 1, $XSablier, $YSablier)
+	  ControlClick($hWnd,"",$id, "left", 1, $recolterSablier[0], $recolterSablier[1])
 	  $CollectingSablier = False
    WEnd
 
