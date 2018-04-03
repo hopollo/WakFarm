@@ -13,8 +13,8 @@ So, let me know about all your suggestions or more & let's make that super smart
 
 ## How to build it ?
 
-1°) : Download the latest version of AutoIt. (https://www.autoitscript.com/site/autoit/downloads/)
-2°) : Download this GitHub folder.
-3°) : Tweak the script with your pixels/screen size if needed.
-4°) : Edit the "target.png" to the creature you want to farm.
-5°) : Run/Build the script and Enjoy.
+1°) : Download the latest version of AutoIt. (https://www.autoitscript.com/site/autoit/downloads/)  
+2°) : Download this GitHub folder.  
+3°) : Tweak the script with your pixels/screen size if needed.  
+4°) : Edit the "target.png" to the creature you want to farm.  
+5°) : Run/Build the script and Enjoy.  
