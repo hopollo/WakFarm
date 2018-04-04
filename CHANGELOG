@@ -1,3 +1,8 @@
+04/04/2018 17:00
+- Fixed, major issues, script is running, bot is farming
+- Changed target.png
+- Rework of the code to adapt the new ImageSearch.au3
+
 03/04/2018 13:44
 - Fixed, Close 3 (old) issues
 - Reupload all requiered images
