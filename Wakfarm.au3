@@ -4,23 +4,29 @@
 ;~ Disclaimer : This program is not about cheating or abusing the game,
 ;~ 		but it's a fun way to learn how to code intelligent macros.
 
+;~ #RequireAdmin
 #include <ImageSearch.au3>
 #include <FileConstants.au3>
 #include <MsgBoxConstants.au3>
 #include <WinAPIFiles.au3>
 
+; TODO (HoPollo) : Implement a proper GUI
+
+Opt("PixelCoordMode", 2)
+
 Global Const $colorRecolte = 0x00837F
 Global Const $colorPopout = 0xFF9700
 Global Const $colorCombat = 0x4AA197
 
-Global $DetectionImage, $DetectionPixel, $Combat , $Wait, $Popout, $Attacking, $CollectingMain, $CollectingSablier, $Moving = False
+Global $DetectionImage, $DetectionPixel, $Combat , $Wait, $Popout, $Attacking, $CollectingHand, $CollectingSablier, $Moving = False
 
 Global $reason = "Thanks for using this program, see you next time."
 
 Global $launcher = "[TITLE:Updater Wakfu; CLASS:QWidget]"
 Global $title = "[TITLE:WAKFU; CLASS:SunAwtFrame]"
-Global $id = "[CLASS:SunAwtCanvas; INSTANCE:2]"
+Global $id = "[CLASS:SunAwtCanvas; INSTANCE:1]"
 
+Global $config = "config.ini"
 Global $target = "target.png"
 Global $harvest = "harvest.png"
 Global $cut = "cut.png"
@@ -31,7 +37,7 @@ Global $dll3 = "ImageSearchDLLx64.dll"
 
 Global $CouperOnly = False
 Global $DetectionParPixel = True
-Global $colorPixelMob[3] = [0x595510, 0xFFF1B2, 0x777208]
+Global $colorPixelMob[] = ["0x6D320B", "0x1D3836"]
 Global $tolerancePixel = 2
 
 HotKeySet ("{ESC}","ExitScript")
@@ -39,6 +45,7 @@ HotKeySet ("{ESC}","ExitScript")
 Requirements()
 
 Func Requirements()
+   ; TODO (HoPollo) : Add .ini verification after implemented
    $file1 = FileExists($target)
    $file2 = FileExists($harvest)
    $file3 = FileExists($cut)
@@ -46,8 +53,13 @@ Func Requirements()
    $file5 = FileExists($dll1)
    $file6 = FileExists($dll2)
    $file7 = FileExists($dll3)
+;~    $file8 = FileExists($config)
 
+
+;~    If $file1 And $file2 And $file3 And $file4 And $file5 And $file6 And $file7 And $file8 = True Then
    If $file1 And $file2 And $file3 And $file4 And $file5 And $file6 And $file7 = True Then
+	  ; TODO : Add ini config file reading for vars and stuff
+;~ 	  ConfigRead()
 	  Start()
    Else
 	  $reason = "Some important required files are missing, please check if they are in the same folder as this program."
@@ -55,26 +67,42 @@ Func Requirements()
    EndIf
 EndFunc
 
+Func ConfigRead()
+   $hFileOpen = FileOpen($config)
+   If $hFileOpen = -1 Then
+        CreateConfig()
+   Else
+		Start()
+   EndIf
+EndFunc
+
+Func CreateConfig()
+   ;TODO (HoPollo) : Implement default config.ini template if needed new
+EndFunc
+
 Func Start()
-   Local $ok = False
-   Local $to = 0
+   Local $updater = False
+   Local $game = False
+   Local $timeOut = 10 ;seconds
    Do
    Sleep(100)
    If WinExists($launcher, "") Then
 	  ConsoleWrite("Updater OK" & @CRLF)
-	  $ok = True
-   ElseIf WinExists($title, "") Then
+	  $updater = True
+   EndIf
+   If WinExists($title, "") Then
 	  ConsoleWrite("WAKFU OK" & @CRLF)
-	  $ok = True
+	  $game = True
    Else
 	  ConsoleWrite("Updater/WAKFU NO" & @CRLF)
-	  $to = $to + 1
-	  If $to > 50 Then
-		 $reason = "TimeOut : Wakfu.exe (Not dectected)"
+	  Sleep(1000)
+	  $timeOut = $timeOut - 1
+	  If $timeOut = 0 Then
+		 $reason = "TimeOut : Wakfu (Not dectected/launched properly)"
 		 ExitScript()
 	  EndIf
    EndIf
-   Until $ok
+   Until $updater And $game = True
    MsgBox(0,"Step 1","Please completly join the world, before pressing OK")
    If 1 Then
 	  Step0()
@@ -99,22 +127,30 @@ EndFunc
 Func Step1()
 While 1
    ConsoleWrite("Analysing..." & @CRLF)
-   Sleep(6000)
+   Sleep(500)
 
 	  #Region Images Searchs
+	  ; ISSUE : ImageSearch are not stable atm
+	  Global $closeBtnImage = _ImageSearch($close)
 	  Global $monstreImage = _ImageSearch($target)
 	  Global $recolterSablier = _ImageSearch($harvest)
-	  Global $recolterMain = _ImageSearch($cut)
-	  Global $Close = _ImageSearch($close)
+	  Global $recolterHand = _ImageSearch($cut)
 	  #EndRegion
 
 	  #Region Pixels Searchs
-	  $recolte = PixelSearch($aPos[0] + 20, $aPos[1] + 75, $aPos[2] - 30, $aPos[3] - 90, $colorRecolte)
-	  $pop = PixelSearch($aPos[0] + 500,$aPos[1] + 260, $aPos[2] - 480,$aPos[3] - 420, $colorPopout, 5)
-	  $piste1 = PixelSearch($aPos[0] + 20, $aPos[1] + 75, $aPos[2] - 30, $aPos[3] - 90, $colorPixelMob[0], $tolerancePixel)
-		 $piste2 = PixelSearch($piste1[0] + 10, $piste1[1] + 35, $piste1[2] - 15, $piste1[3] - 45, $colorPixelMob[1], $tolerancePixel)
-			$monstrePixel = PixelSearch($piste2[0] + 5, $piste2[1] + 17, $piste2[2] - 7, $piste2[3] - 23, $colorPixelMob[2], $tolerancePixel)
+
+	  ; ISSUE : No more detecting the cross 100%
+	  Global $closeBtnPixel = PixelSearch($aPos[0], $aPos[1], $aPos[2], $aPos[3], $colorPopout, $tolerancePixel)
+
+	  ; ISSUE : Detects Tempo on fight state
+	  ; TODO (HoPollo) : Change completly the tempo detection or something
+	  Global $recolte = PixelSearch($aPos[0], $aPos[1], $aPos[2], $aPos[3], $colorRecolte, $tolerancePixel)
+
+	  Local $randomCreaturePixel = Random(0, UBound($colorPixelMob)-1, 1)
+	  ConsoleWrite("Pixel picked : " &  $colorPixelMob[$randomCreaturePixel] & @CRLF)
+	  Global $monstrePixel = PixelSearch($aPos[0], $aPos[1], $aPos[2], $aPos[3], $colorPixelMob[$randomCreaturePixel], $tolerancePixel)
 	  #EndRegion
+
 
 	  #Region Actions
 		 If IsArray($recolterSablier) Then
@@ -124,8 +160,8 @@ While 1
 			   $CollectingSablier = True
 		 EndIf
 
-		 ElseIf IsArray($recolterMain) Then
-			$CollectingMain = True
+		 ElseIf IsArray($recolterHand) Then
+			$CollectingHand = True
 
 		 ElseIf IsArray($recolte) Then
 			$Wait = True
@@ -133,25 +169,17 @@ While 1
 		 ElseIf IsArray($monstreImage) Then
 			$DetectionImage = True
 
-		 ElseIf IsArray($Close) Then
-			   Sleep(1000)
-				  ControlClick($hWnd,"",$id, "left", 1, $Close[0], $Close[1])
+		 ElseIf IsArray($monstrePixel) And $DetectionParPixel = True Then
+			$DetectionPixel = True
 
-		 ElseIf IsArray($pop) Then
-			$Popout = True
-
-		 ElseIf IsArray($piste1) Then
-		  	If IsArray($piste2) Then
-			 	If IsArray($monstrePixel) Then
-					If $DetectionParPixel = True Then
-					  	$DetectionPixel = True
-					EndIf
-			 	EndIf
-		 	 EndIf
+		 ElseIf IsArray($closeBtnImage) Or $recolte = 1 Then
+			   $Popout = True
 		 EndIf
 	  #EndRegion
 
    While $Wait
+	  ; ISSUE : Detects Tempo on fight state
+	  ; TODO (HoPollo) : Change completly the tempo detection or something
 	  ConsoleWrite("Tempo dectected" & @CRLF)
 	  Sleep(3000)
 	  $Wait = False
@@ -160,17 +188,8 @@ While 1
    While $Popout
 	  ConsoleWrite("Popout detected" & @CRLF)
 	  Sleep(100)
-	  ControlClick($hWnd,"",$id, "left", 1, $aPos[0] + 520, $aPos[1] + 425)
-	  Sleep(100)
-	  ControlClick($hWnd,"",$id, "left", 1, $aPos[0] + 480, $aPos[1] + 400)
+	  ControlClick($hWnd,"",$id, "left", 1, $closeBtnImage[0], $closeBtnImage[1])
 	  $Popout = False
-   WEnd
-
-   While $DetectionPixel
-	  ConsoleWrite("MOB found ! (Pixel)" & @CRLF)
-	  Sleep(100)
-	  ControlClick($hWnd,"",$id, "right", 1, $monstrePixel[0], $monstrePixel[1])
-	  $DetectionPixel = False
    WEnd
 
    While $DetectionImage
@@ -180,11 +199,19 @@ While 1
 	  $DetectionImage = False
    WEnd
 
-   While $CollectingMain
+   While $DetectionPixel
+	  ConsoleWrite("MOB found ! (Pixel)" & @CRLF)
+	  Sleep(100)
+	  ControlClick($hWnd,"",$id, "right", 1, $monstrePixel[0], $monstrePixel[1])
+	  $DetectionPixel = False
+   WEnd
+
+   While $CollectingHand
 	  ConsoleWrite("Harvesting -> Hand " & @CRLF)
 	  Sleep(500)
-	  ControlClick($hWnd,"",$id, "left", 1, $recolterMain[0], $recolterMain[1])
-		 $CollectingMain = False
+	  ControlClick($hWnd,"",$id, "left", 1, $recolterHand[0], $recolterHand[1])
+	  $CollectingHand = False
+	  $Moving = True
    WEnd
 
    While $CollectingSablier
@@ -192,6 +219,13 @@ While 1
 	  Sleep(500)
 	  ControlClick($hWnd,"",$id, "left", 1, $recolterSablier[0], $recolterSablier[1])
 	  $CollectingSablier = False
+	  $Moving = True
+   WEnd
+
+   While $Moving
+	  ConsoleWrite("Running, wait...")
+	  Sleep(2000)
+	  $Moving = False
    WEnd
 
 WEnd
@@ -199,6 +233,7 @@ EndFunc
 
 Func ExitScript()
    MsgBox(0,"Closing", $reason, 10)
+;~    FileClose($config)
    ConsoleWrite("Program closed...")
    Exit
 EndFunc
