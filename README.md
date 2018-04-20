@@ -11,10 +11,6 @@ But to improves it together, in any case you will have to adjust settings/images
 
 So, let me know about all your suggestions or more & let's make that super smart step by step.
 
-## How to build it ?
+## Need help ?
 
-1°) : Download the lastest version of AutoIt. (https://www.autoitscript.com/site/autoit/downloads/)  
-2°) : Download this GitHub folder. (https://github.com/hopollo/Wakfarm/archive/master.zip)  
-3°) : Tweak the script with your pixels/screen size if needed.  
-4°) : Edit the "target.png" to the creature you want to farm.  
-5°) : Run/Build the script and Enjoy.  
+Checkout the [WIKI](https://github.com/hopollo/Wakfarm/wiki)  
