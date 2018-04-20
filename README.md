@@ -1,4 +1,4 @@
-# Wakfarm
+# WakFarm
 Open source farming bot for Wakfu
 
 Hey guys, 
