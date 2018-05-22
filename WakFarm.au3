@@ -4,7 +4,7 @@
 ;~ Disclaimer : This program is not about cheating or abusing the game,
 ;~ 		but it's a fun way to learn how to code intelligent macros.
 
-#RequireAdmin
+;#RequireAdmin
 #include <FileConstants.au3>
 #include <MsgBoxConstants.au3>
 #include <WinAPIFiles.au3>
