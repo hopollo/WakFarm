@@ -5,16 +5,26 @@
 ;~ 		but it's a fun way to learn how to code intelligent macros.
 
 ;#RequireAdmin
-#include <FileConstants.au3>
-#include <MsgBoxConstants.au3>
+#include <ButtonConstants.au3>
+#include <EditConstants.au3>
+#include <GUIConstantsEx.au3>
+#include <File.au3>
+#include <Array.au3>
 #include <WinAPIFiles.au3>
+#include <StaticConstants.au3>
+#include <WindowsConstants.au3>
+#include <ScrollBarsConstants.au3>
+#include <MsgBoxConstants.au3>
 #include <ImageSearch.au3>
-
-; TODO (HoPollo) : Implement a proper GUI
+#include <GuiEdit.au3>
+#include <StaticConstants.au3>
 
 Opt("PixelCoordMode", 2)
 
 Global $config = "config.ini"
+
+Global $imageUrl = IniRead($config, "basic", "Image_Folder", "")
+Global $targetUrl = IniRead($config, "basic", "Target_Folder", "")
 
 Global Const $colorRecolte = IniRead($config, "settings" , "Color_Harvest", "")
 Global Const $colorPopout = IniRead($config, "settings" , "Color_Popout", "")
@@ -22,67 +32,98 @@ Global Const $colorCombat = IniRead($config, "settings" , "Color_Combat", "")
 Global $colorPixelMob[] = ["0x6D320B", "0x1D3836"]
 Global $tolerancePixel = IniRead($config, "settings" , "Pixel_Tolerance", "")
 
-Global $detectionImage, $detectionPixel, $combat , $wait, $popout, $attacking, $collectingHand, $collectingSablier, $moving = False
-
-Global $reason = "Thanks for using this program, see you next time."
+Global $target = IniRead($config, "settings" , "Image_Target", "")
+Global $harvest = IniRead($config, "settings" , "Button_Harvest", "")
+Global $cut = IniRead($config, "settings" , "Button_Cut", "")
+Global $close = IniRead($config, "settings" , "Button_Close", "")
+Global $dll1 = "ImageSearchDLL.dll"
+Global $dll2 = "ImageSearchDLLx32.dll"
+Global $dll3 = "ImageSearchDLLx64.dll"
 
 Global $launcher = "[TITLE:Updater Wakfu; CLASS:QWidget]"
 Global $title = "[TITLE:WAKFU; CLASS:SunAwtFrame]"
 Global $id = "[CLASS:SunAwtCanvas; INSTANCE:1]"
 
-Global $target = IniRead($config, "settings" , "Image_Target", "target.png")
-Global $harvest = IniRead($config, "settings" , "Button_Harvest", "harvest.png")
-Global $cut = IniRead($config, "settings" , "Button_Cut", "cut.png")
-Global $close = IniRead($config, "settings" , "Button_Close", "close.png")
-Global $dll1 = "ImageSearchDLL.dll"
-Global $dll2 = "ImageSearchDLLx32.dll"
-Global $dll3 = "ImageSearchDLLx64.dll"
-
-; implement debugMode after GUI feature
-Global $debugMode = False
+Global $debugMode = IniRead($config, "basic", "Debug_Mode", "False")
 Global $couperOnly = IniRead($config, "basic" , "Cut_Only", "False")
 Global $detectionParPixel = IniRead($config, "basic" , "Pixel_Detection", "True")
+
+Global $detectionImage, $detectionPixel, $combat , $wait, $popout, $attacking, $collectingHand, $collectingSablier, $moving = False
+
+Global $reason = @CRLF & "Thanks for using this program, see you next time."
 
 $exitKey = IniRead($config, "basic", "Exit_Key", "ESC")
 
 HotKeySet ("{"&$exitKey&"}","ExitScript")
 
-Requirements()
+#Region ### START Main GUI ###
+Global $Form1 = GUICreate("WakFarm", 197, 268, 192, 124)
+WinSetOnTop($Form1, "", 1)
+Global $journal = GUICtrlCreateEdit("", 0, 0, 196, 209, BitOR($ES_AUTOVSCROLL,$ES_READONLY,$WS_VSCROLL))
+GUICtrlSetData(-1, "")
+GUICtrlSetState(-1, $GUI_DISABLE)
+GUICtrlSetCursor (-1, 2)
+$GUI_EVENT_START = GUICtrlCreateButton("Start", 25, 240, 150, 25)
+GUICtrlSetFont(-1, 8, 800, 0, "MS Sans Serif")
+GUICtrlSetBkColor(-1, 0x008080)
+Opt("GUICoordMode", 2)
+GUISetCoord(1153, 231)
+GUISetState(@SW_SHOW)
+#EndRegion ### END Main GUI ###
 
-Func Requirements()
-   ; TODO (HoPollo) : Add .ini verification after implemented
-	$file1 = FileExists($target)
-	$file2 = FileExists($harvest)
-	$file3 = FileExists($cut)
-	$file4 = FileExists($close)
+While 1
+   $nMsg = GUIGetMsg()
+   Switch $nMsg
+	  Case $GUI_EVENT_CLOSE
+		 ExitScript()
+	  Case $GUI_EVENT_START
+		 GUICtrlSetData($GUI_EVENT_START, $exitKey & " = exit")
+		 Requierements()
+
+   EndSwitch
+WEnd
+
+Func FreshStart()
+   Sleep(100)
+
+   GUICtrlSetData($GUI_EVENT_START, "Start")
+EndFunc
+
+Func Requierements()
+
+	$file1 = FileExists($targetUrl & $target)
+	$file2 = FileExists($imageUrl & $harvest)
+	$file3 = FileExists($imageUrl & $cut)
+	$file4 = FileExists($imageUrl & $close)
 	$file5 = FileExists($dll1)
 	$file6 = FileExists($dll2)
 	$file7 = FileExists($dll3)
 	$file8 = FileExists($config)
 
 	If $file1 And $file2 And $file3 And $file4 And $file5 And $file6 And $file7 And $file8 = True Then
+	  debug("Requierments -> OK" & @CRLF)
 	  ConfigRead()
 	Else
 		Select
 			Case Not $file1
-				MsgBox(0,"Error", $target & " is missing.")
+				info("Error : " & $target & " is missing.")
 			Case Not $file2
-				MsgBox(0,"Error", $harvest & " is missing.")
+				info("Error : " &  $harvest & " is missing.")
 			Case Not $file3
-				MsgBox(0,"Error", $cut & " is missing.")
+				info("Error : " &  $cut & " is missing.")
 			Case Not $file4
-				MsgBox(0,"Error", $close & " is missing.")
+				info("Error : " &  $close & " is missing.")
 			Case Not $file5
-				MsgBox(0,"Error", $dll1 & " is missing.")
+				info("Error : " &  $dll1 & " is missing.")
 			Case Not $file6
-				MsgBox(0,"Error", $dll2 & " is missing.")
+				info("Error : " &  $dll2 & " is missing.")
 			Case Not $file7
-				MsgBox(0,"Error", $dll3 & " is missing.")
+				info("Error : " &  $dll3 & " is missing.")
 			Case Not $file8
-				MsgBox(0,"Error", $config & " is missing.")
+				info("Error : " &  $config & " is missing.")
 				ConfigRead()
 		EndSelect
-	  ExitScript()
+		GUICtrlSetData($GUI_EVENT_START, "Start")
 	EndIf
 EndFunc
 
@@ -102,8 +143,25 @@ Func ConfigRead()
 EndFunc
 
 Func WriteDefaultConfig()
-	FileWrite($config, "[basic]" & @CRLF & "Exit_Key=ESC" & @CRLF & "Debug_Mode=False" & @CRLF & "Cut_Only=False" & @CRLF & "Pixel_Detection=True" & @CRLF & @CRLF)
-	FileWrite($config, "[settings]" & @CRLF & "Color_Combat=0x4AA197" & @CRLF & "Color_Popup=0xFF9700" & @CRLF & "Color_Harvest=0x00837F" & @CRLF & "Pixel_Tolerance=2" & @CRLF & "Image_Target=target.png" & @CRLF & "Button_Harvest=harvest.png" & @CRLF & "Button_Close=close.png" & @CRLF & "Button_Cut=cut.png")
+	FileWrite($config, "[basic]" & @CRLF & "Exit_Key=ESC" & @CRLF & "Debug_Mode=False" & @CRLF & "Image_Folder=imgs/" & @CRLF & "Target_Folder=targets/current/" & @CRLF & "Cut_Only=False" & @CRLF & "Pixel_Detection=True" & @CRLF & @CRLF)
+	FileWrite($config, "[settings]" & @CRLF & "Color_Combat=0x4AA197" & @CRLF & "Color_Popup=0xFF9700" & @CRLF & "Color_Harvest=0x00837F" & @CRLF & "Pixel_Tolerance=2" & @CRLF & "Button_Harvest=harvest.png" & @CRLF & "Button_Close=close.png" & @CRLF & "Button_Cut=cut.png")
+EndFunc
+
+Func info($messageJournal, $autresInfos = "")
+   GUICtrlSetData($journal, GUICtrlRead($journal) & @CRLF & $messageJournal)
+   $end = StringLen(GUICtrlRead($journal))
+   _GUICtrlEdit_SetSel($journal, $end, $end)
+   _GUICtrlEdit_Scroll($journal, $SB_SCROLLCARET)
+EndFunc
+
+Func debug($messageJournal, $autresInfos = "")
+   If $debugMode = True Then
+	  $sleep = 500
+	  GUICtrlSetData($journal, GUICtrlRead($journal) & @CRLF & $messageJournal)
+	  $end = StringLen(GUICtrlRead($journal))
+	  _GUICtrlEdit_SetSel($journal, $end, $end)
+	  _GUICtrlEdit_Scroll($journal, $SB_SCROLLCARET)
+   EndIf
 EndFunc
 
 Func Start()
@@ -113,37 +171,38 @@ Func Start()
    Do
    Sleep(100)
    If WinExists($launcher, "") Then
-	  ConsoleWrite("Updater OK" & @CRLF)
+	  debug("Updater OK")
 	  $updater = True
    EndIf
    If WinExists($title, "") Then
-	  ConsoleWrite("WAKFU OK" & @CRLF)
+	  debug("WAKFU OK")
 	  $game = True
    Else
-	  ConsoleWrite("Updater/WAKFU NO" & @CRLF)
+	  debug("Updater/WAKFU not found.")
 	  Sleep(1000)
 	  $timeOut = $timeOut - 1
 	  If $timeOut = 0 Then
 		 $reason = "TimeOut : Wakfu (Not dectected/launched properly)"
+		 FreshStart()
 		 ExitScript()
 	  EndIf
    EndIf
    Until $updater And $game = True
-   MsgBox(0,"Step 1","Please completly join the world, before pressing OK")
+   MsgBox(0, "Info", "Please completly join the world, before pressing OK") ; must stay msgbox to know if Ok or not
    If 1 Then
 	  GameWindowControl()
    EndIf
 EndFunc
 
 Func GameWindowControl()
-   ConsoleWrite("Starting : Step0" & @CRLF)
+   debug("Starting : Step0")
    Global $hWnd = WinActivate($title,"")
    If @error Then
 	  WinActivate($hWnd)
-	  ConsoleWrite("Focus -> WAKFU" & @CRLF)
+	  debug("Focus -> WAKFU")
    Else
 	  Sleep(1000)
-	  ConsoleWrite("Scroll up" & @CRLF)
+	  debug("Scroll up")
 	  MouseWheel("down",15)
    EndIf
    Global $aPos = WinGetPos($hWnd)
@@ -152,14 +211,14 @@ EndFunc
 
 Func ScriptControl()
 	While 1
-		ConsoleWrite("Analysing..." & @CRLF)
+		info("Analysing...")
 		Sleep(500)
 
 		#Region Images Searchs
-		Global $closeBtnImage = _ImageSearch($close)
-		Global $monstreImage = _ImageSearch($target)
-		Global $recolterSablier = _ImageSearch($harvest)
-		Global $recolterHand = _ImageSearch($cut)
+		Global $closeBtnImage = _ImageSearch($imageUrl & $close)
+		Global $monstreImage = _ImageSearch($targetUrl & $target)
+		Global $recolterSablier = _ImageSearch($imageUrl & $harvest)
+		Global $recolterHand = _ImageSearch($imageUrl & $cut)
 		#EndRegion
 
 		#Region Pixels Searchs
@@ -172,7 +231,7 @@ Func ScriptControl()
 		Global $recolte = PixelSearch($aPos[0], $aPos[1], $aPos[2], $aPos[3], $colorRecolte, $tolerancePixel)
 
 		Local $randomCreaturePixel = Random(0, UBound($colorPixelMob)-1, 1)
-		ConsoleWrite("Pixel picked : " &  $colorPixelMob[$randomCreaturePixel] & @CRLF)
+		info("Pixel picked : " &  $colorPixelMob[$randomCreaturePixel] & @CRLF)
 		Global $monstrePixel = PixelSearch($aPos[0], $aPos[1], $aPos[2], $aPos[3], $colorPixelMob[$randomCreaturePixel], $tolerancePixel)
 		#EndRegion
 
@@ -205,20 +264,20 @@ Func ScriptControl()
 		While $wait
 		  ; ISSUE : Detects Tempo on fight state
 		  ; TODO (HoPollo) : Change completly the tempo detection or something
-		  ConsoleWrite("Tempo dectected" & @CRLF)
+		  info("Tempo dectected")
 		  Sleep(3000)
 		  $wait = False
 		WEnd
 
 		While $popout
-		  ConsoleWrite("Popout detected" & @CRLF)
+		  info("Popout detected")
 		  Sleep(100)
 		  ControlClick($hWnd,"",$id, "left", 1, $closeBtnImage[0], $closeBtnImage[1])
 		  $popout = False
 		WEnd
 
 		While $detectionImage And Not $moving
-		  ConsoleWrite("MOB found ! (Image)" & @CRLF)
+		  info("MOB found ! (Image)")
 		  Sleep(100)
 		  ControlClick($hWnd,"",$id, "right", 1, $monstreImage[0], $monstreImage[1])
 		  $detectionImage = False
@@ -226,7 +285,7 @@ Func ScriptControl()
 		WEnd
 
 		While $detectionPixel And Not $moving
-		  ConsoleWrite("MOB found ! (Pixel)" & @CRLF)
+		  info("MOB found ! (Pixel)")
 		  Sleep(100)
 		  ControlClick($hWnd,"",$id, "right", 1, $monstrePixel[0], $monstrePixel[1])
 		  $detectionPixel = False
@@ -234,7 +293,7 @@ Func ScriptControl()
 		WEnd
 
 		While $collectingHand And Not $moving
-		  ConsoleWrite("Harvesting -> Hand " & @CRLF)
+		  info("Harvesting -> Hand ")
 		  Sleep(500)
 		  ControlClick($hWnd,"",$id, "left", 1, $recolterHand[0], $recolterHand[1])
 		  $collectingHand = False
@@ -242,7 +301,7 @@ Func ScriptControl()
 		WEnd
 
 		While $collectingSablier And Not $moving
-		  ConsoleWrite("Harvesting -> Sablier " & @CRLF)
+		  info("Harvesting -> Sablier ")
 		  Sleep(500)
 		  ControlClick($hWnd,"",$id, "left", 1, $recolterSablier[0], $recolterSablier[1])
 		  $collectingSablier = False
@@ -250,7 +309,7 @@ Func ScriptControl()
 		WEnd
 
 		While $moving
-		  ConsoleWrite("Running, wait...")
+		  info("Running, wait...")
 		  Sleep(2000)
 		  $moving = False
 		WEnd
@@ -258,8 +317,8 @@ Func ScriptControl()
 EndFunc
 
 Func ExitScript()
-   MsgBox(0,"Closing", $reason, 10)
+   info($reason)
    FileClose($config)
-   ConsoleWrite("Program closed...")
+   Sleep(2500)
    Exit
 EndFunc
