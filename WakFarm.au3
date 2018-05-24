@@ -138,8 +138,30 @@ Func ConfigRead()
 			WriteDefaultConfig()
 		EndIf
 	Else
-		Start()
+		ReadTargets()
 	EndIf
+EndFunc
+
+Func ReadTargets()
+
+	Global $targetInfo = _FileListToArrayRec($targetUrl, "*", $FLTAR_FILES, $FLTAR_NORECUR, $FLTAR_SORT)
+	If @error Then
+	  info("Unable to retrieve target info from config files")
+	  FreshStart()
+	EndIf
+
+	Dim $foo[0]
+
+	info("Targets found : " & $targetInfo[0])
+	debug("Current targets :")
+
+	For $i = 1 To $targetInfo[0]
+	  debug($targetInfo[$i])
+	  _ArrayAdd($foo, $targetInfo[$i])
+	Next
+	debug("") ;Space after target list
+
+	Start()
 EndFunc
 
 Func WriteDefaultConfig()
@@ -178,12 +200,11 @@ Func Start()
 	  debug("WAKFU OK")
 	  $game = True
    Else
-	  debug("Updater/WAKFU not found.")
+	  debug("Updater/WAKFU not found")
 	  Sleep(1000)
 	  $timeOut = $timeOut - 1
 	  If $timeOut = 0 Then
 		 $reason = "TimeOut : Wakfu (Not dectected/launched properly)"
-		 FreshStart()
 		 ExitScript()
 	  EndIf
    EndIf
@@ -216,7 +237,14 @@ Func ScriptControl()
 
 		#Region Images Searchs
 		Global $closeBtnImage = _ImageSearch($imageUrl & $close)
-		Global $monstreImage = _ImageSearch($targetUrl & $target)
+
+		Local $a = 0
+		Do
+			$a = $a + 1
+			Info("Searching : " & $targetInfo[$a])
+			Global $monstreImage = _ImageSearch($targetUrl & $targetInfo[$a])
+		Until $a = $targetInfo[0]
+
 		Global $recolterSablier = _ImageSearch($imageUrl & $harvest)
 		Global $recolterHand = _ImageSearch($imageUrl & $cut)
 		#EndRegion
@@ -317,8 +345,8 @@ Func ScriptControl()
 EndFunc
 
 Func ExitScript()
-   info($reason)
+   info(@CRLF & $reason)
    FileClose($config)
-   Sleep(2500)
+   Sleep(2000)
    Exit
 EndFunc
