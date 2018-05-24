@@ -71,15 +71,17 @@ GUISetCoord(1153, 231)
 GUISetState(@SW_SHOW)
 #EndRegion ### END Main GUI ###
 
+Info("Bienvenue sur WakFarm by HoPollo" & @CRLF)
+
 While 1
    $nMsg = GUIGetMsg()
+
    Switch $nMsg
 	  Case $GUI_EVENT_CLOSE
 		 ExitScript()
 	  Case $GUI_EVENT_START
 		 GUICtrlSetData($GUI_EVENT_START, $exitKey & " = exit")
 		 Requierements()
-
    EndSwitch
 WEnd
 
@@ -90,38 +92,34 @@ Func FreshStart()
 EndFunc
 
 Func Requierements()
+	ConfigRead()
 
-	$file1 = FileExists($targetUrl & $target)
-	$file2 = FileExists($imageUrl & $harvest)
-	$file3 = FileExists($imageUrl & $cut)
-	$file4 = FileExists($imageUrl & $close)
-	$file5 = FileExists($dll1)
-	$file6 = FileExists($dll2)
-	$file7 = FileExists($dll3)
-	$file8 = FileExists($config)
+	$file1 = FileExists($imageUrl & $harvest)
+	$file2 = FileExists($imageUrl & $cut)
+	$file3 = FileExists($imageUrl & $close)
+	$file4 = FileExists($dll1)
+	$file5 = FileExists($dll2)
+	$file6 = FileExists($dll3)
+	$file7 = FileExists($config)
 
-	If $file1 And $file2 And $file3 And $file4 And $file5 And $file6 And $file7 And $file8 = True Then
+	If $file1 And $file2 And $file3 And $file4 And $file5 And $file6 And $file7 = True Then
 	  debug("Requierments -> OK" & @CRLF)
-	  ConfigRead()
 	Else
 		Select
 			Case Not $file1
-				info("Error : " & $target & " is missing.")
+				info("Error : " &  $harvest & " is missing")
 			Case Not $file2
-				info("Error : " &  $harvest & " is missing.")
+				info("Error : " &  $cut & " is missing")
 			Case Not $file3
-				info("Error : " &  $cut & " is missing.")
+				info("Error : " &  $close & " is missing")
 			Case Not $file4
-				info("Error : " &  $close & " is missing.")
+				info("Error : " &  $dll1 & " is missing")
 			Case Not $file5
-				info("Error : " &  $dll1 & " is missing.")
+				info("Error : " &  $dll2 & " is missing")
 			Case Not $file6
-				info("Error : " &  $dll2 & " is missing.")
+				info("Error : " &  $dll3 & " is missing")
 			Case Not $file7
-				info("Error : " &  $dll3 & " is missing.")
-			Case Not $file8
-				info("Error : " &  $config & " is missing.")
-				ConfigRead()
+				info("Error : " &  $config & " is missing")
 		EndSelect
 		GUICtrlSetData($GUI_EVENT_START, "Start")
 	EndIf
