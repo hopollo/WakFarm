@@ -71,7 +71,7 @@ GUISetCoord(1153, 231)
 GUISetState(@SW_SHOW)
 #EndRegion ### END Main GUI ###
 
-Info("Bienvenue sur WakFarm by HoPollo" & @CRLF)
+Info("Welcome to WakFarm by HoPollo" & @CRLF)
 
 While 1
    $nMsg = GUIGetMsg()
